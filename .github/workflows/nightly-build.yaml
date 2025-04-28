@@ -44,8 +44,6 @@ jobs:
       - name: Build Docker image
         run: |
           echo "Building Docker image..."
-                - name: Build & Push Docker images
-        run: |
           echo "Using IMAGE_TAG=$IMAGE_TAG"
           cd source
           SERVICES=(auth-api todos-api users-api frontend log-message-processor)
