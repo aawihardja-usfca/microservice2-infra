@@ -8,11 +8,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  integration:
+  build-and-deploy:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
       AWS_ID: '035863456454'
+      ECR_REGISTRY: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+      IMAGE_TAG: QA-$(date +'%F') # tag format <service>-QA-<YYYY-MM-DD>
 
     steps:
       - name: Checkout infra (this) repo
@@ -26,7 +28,31 @@ jobs:
           repository: aawihardja-usfca/microservice2-source
           path: source
       
-      - name: Validate source code
+      # - name: Validate source code
+      #   run: |
+      #     echo "Validating source code..."
+      #     ls -AR source
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Build Docker image
         run: |
-          echo "Validating source code..."
-          ls -AR source
+          echo "Building Docker image..."
+                - name: Build & Push Docker images
+        run: |
+          echo "Using IMAGE_TAG=$IMAGE_TAG"
+          cd source
+          SERVICES=(auth-api todos-api users-api frontend log-message-processor)
+          for svc in "${SERVICES[@]}"; do
+            IMAGE_URI="$ECR_REGISTRY/$svc:$IMAGE_TAG"
+            echo "→ Building $svc"
+            docker build -t "$IMAGE_URI" "./$svc"
+            echo "→ Pushing $IMAGE_URI"
+            docker push "$IMAGE_URI"
+          done
