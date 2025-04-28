@@ -1,0 +1,32 @@
+name: "Nightly Build → QA"
+
+on:
+  # triggered nightly
+  schedule:
+    - cron: '0 2 * * *'
+
+  workflow_dispatch:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      AWS_ID: '035863456454'
+
+    steps:
+      - name: Checkout infra (this) repo
+        uses: actions/checkout@v4
+        with:
+          path: infra
+      
+      - name: Checkout source code repo
+        uses: actions/checkout@v4
+        with:
+          repository: aawihardja-usfca/microservice2-source
+          path: source
+      
+      - name: Validate source code
+        run: |
+          echo "Validating source code..."
+          ls -AR source
