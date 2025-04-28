@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
-      AWS_ID: '035863456454'
+      AWS_ACCOUNT_ID: '035863456454'
 
     steps:
       - name: Checkout infra (this) repo
