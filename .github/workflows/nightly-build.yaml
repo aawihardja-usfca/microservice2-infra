@@ -13,8 +13,6 @@ jobs:
     env:
       AWS_REGION: us-east-1
       AWS_ID: '035863456454'
-      ECR_REGISTRY: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-      IMAGE_TAG: QA-$(date +'%F') # tag format <service>-QA-<YYYY-MM-DD>
 
     steps:
       - name: Checkout infra (this) repo
@@ -43,14 +41,19 @@ jobs:
 
       - name: Build Docker image
         run: |
-          echo "Building Docker image..."
-          echo "Using IMAGE_TAG=$IMAGE_TAG"
-          cd source
+          AWS_REGION="${{ env.AWS_REGION }}"
+          AWS_ACCOUNT_ID="${{ env.AWS_ACCOUNT_ID }}"
+          ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          IMAGE_TAG="QA-$(date +'%F')"
+
+          echo "Pushing images with tag: $IMAGE_TAG"
+          echo "To registry: $ECR_REGISTRY"
+
           SERVICES=(auth-api todos-api users-api frontend log-message-processor)
           for svc in "${SERVICES[@]}"; do
-            IMAGE_URI="$ECR_REGISTRY/$svc:$IMAGE_TAG"
-            echo "→ Building $svc"
-            docker build -t "$IMAGE_URI" "./$svc"
-            echo "→ Pushing $IMAGE_URI"
+            IMAGE_URI="${ECR_REGISTRY}/${svc}:${IMAGE_TAG}"
+            echo "→ Building $svc → $IMAGE_URI"
+            docker build --pull -t "$IMAGE_URI" "./source/$svc"
+            echo "→ Pushing $svc"
             docker push "$IMAGE_URI"
           done
