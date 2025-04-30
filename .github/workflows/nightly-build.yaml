@@ -63,7 +63,7 @@ jobs:
             docker push "$IMAGE_URI"
 
             key=$(echo "$svc" | tr '[:lower:]-' '[:lower:]_')
-            echo "${key}=${URI}" >> $GITHUB_OUTPUT
+            echo "${key}=${IMAGE_URI}" >> $GITHUB_OUTPUT
           done
       
       - name: Deploy to EKS
