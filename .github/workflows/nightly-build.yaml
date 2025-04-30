@@ -44,6 +44,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
+        id: build_images
         run: |
           AWS_REGION="${{ env.AWS_REGION }}"
           AWS_ACCOUNT_ID="${{ env.AWS_ACCOUNT_ID }}"
