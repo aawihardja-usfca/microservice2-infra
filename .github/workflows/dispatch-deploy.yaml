@@ -1,0 +1,22 @@
+name: CD → Deploy via Dispatch
+
+on:
+  repository_dispatch:
+    types: [ deploy ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout Infra Repo
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        # … configure AWS creds & kubectl …
+
+      - name: Deploy to Kubernetes
+        env:
+          SERVICE: ${{ github.event.client_payload.service }}
+          IMAGE:   ${{ github.event.client_payload.image_uri }}
+        run: |
+          echo "Updating $SERVICE → $IMAGE"
