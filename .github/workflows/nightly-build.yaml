@@ -60,4 +60,15 @@ jobs:
             docker build --pull -t "$IMAGE_URI" "./source/$svc"
             echo "→ Pushing $svc"
             docker push "$IMAGE_URI"
+
+            key=$(echo "$svc" | tr '[:lower:]-' '[:lower:]_')
+            echo "${key}=${URI}" >> $GITHUB_OUTPUT
           done
+      
+      - name: Deploy to EKS
+        run: |
+          echo "Auth API → ${{ steps.build_images.outputs.auth_api }}"
+          echo "Todos API → ${{ steps.build_images.outputs.todos_api }}"
+          echo "Users API → ${{ steps.build_images.outputs.users_api }}"
+          echo "Frontend → ${{ steps.build_images.outputs.frontend }}"
+          echo "Log Message Processor → ${{ steps.build_images.outputs.log_message_processor }}"
