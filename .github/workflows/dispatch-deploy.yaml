@@ -7,6 +7,7 @@ on:
 env:
   AWS_REGION: us-east-1
   AWS_ACCOUNT_ID: '035863456454'
+  EKS_CLUSTER_NAME: microservices-cluster
 
 jobs:
   deploy:
@@ -35,8 +36,8 @@ jobs:
       - name: Update kubeconfig
         run: |
           aws eks update-kubeconfig \
-            --region ${{ secrets.AWS_REGION }} \
-            --name   ${{ secrets.EKS_CLUSTER_NAME }}
+            --region ${{ env.AWS_REGION }} \
+            --name   ${{ env.EKS_CLUSTER_NAME }}
 
       - name: Deploy to Kubernetes
         env:
