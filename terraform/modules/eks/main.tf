@@ -1,72 +1,7 @@
-terraform {
-  required_version = ">= 1.3.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-
-  backend "s3" {
-    bucket         = "035863456454-terraform-state-backend"
-    key            = "terraform/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "terraform_state_lock"
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-}
-
-// variables.tf
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "cluster_name" {
-  description = "EKS cluster name"
-  type        = string
-  default     = "microservices-cluster"
-}
-
-variable "vpc_cidr" {
-  description = "VPC CIDR block"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "public_subnet_cidrs" {
-  description = "List of public subnet CIDRs"
-  type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
-}
-
-variable "private_subnet_cidrs" {
-  description = "List of private subnet CIDRs"
-  type        = list(string)
-  default     = ["10.0.101.0/24", "10.0.102.0/24"]
-}
-
-variable "eks_cluster_role_arn" {
-  description = "ARN of existing IAM role for EKS cluster"
-  default     = "arn:aws:iam::035863456454:role/LabRole"
-  type        = string
-}
-
-variable "eks_node_group_role_arn" {
-  description = "ARN of existing IAM role for EKS node group"
-  default     = "arn:aws:iam::035863456454:role/LabRole"
-  type        = string
-}
-
-// data sources
+# Discover AZs for subnet placement
 data "aws_availability_zones" "available" {}
 
-// VPC, Subnets, IGW, NAT GW, Route Tables, Associations
+# VPC
 resource "aws_vpc" "this" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
@@ -78,23 +13,30 @@ resource "aws_internet_gateway" "this" {
   tags   = { Name = "${var.cluster_name}-igw" }
 }
 
+# Public subnets
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)
   vpc_id                  = aws_vpc.this.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
-  tags                    = { Name = "${var.cluster_name}-public-${count.index + 1}" }
+  tags = {
+    Name = "${var.cluster_name}-public-${count.index + 1}"
+  }
 }
 
+# Private subnets
 resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
   vpc_id            = aws_vpc.this.id
   cidr_block        = var.private_subnet_cidrs[count.index]
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  tags              = { Name = "${var.cluster_name}-private-${count.index + 1}" }
+  tags = {
+    Name = "${var.cluster_name}-private-${count.index + 1}"
+  }
 }
 
+# NAT Gateways
 resource "aws_eip" "nat" {
   count      = length(var.public_subnet_cidrs)
   domain     = "vpc"
@@ -105,9 +47,12 @@ resource "aws_nat_gateway" "this" {
   count         = length(var.public_subnet_cidrs)
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
-  tags          = { Name = "${var.cluster_name}-nat-${count.index + 1}" }
+  tags = {
+    Name = "${var.cluster_name}-nat-${count.index + 1}"
+  }
 }
 
+# Route tables
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
   tags   = { Name = "${var.cluster_name}-public-rt" }
@@ -142,7 +87,7 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.id
 }
 
-// Security Groups
+# Security Groups
 resource "aws_security_group" "cluster" {
   name        = "${var.cluster_name}-cluster-sg"
   description = "EKS control-plane security group"
@@ -198,7 +143,7 @@ resource "aws_security_group_rule" "node_ingress_from_cluster" {
   source_security_group_id = aws_security_group.cluster.id
 }
 
-// EKS Cluster and Node Group
+# EKS Cluster & Node Group
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   role_arn = var.eks_cluster_role_arn
@@ -220,21 +165,4 @@ resource "aws_eks_node_group" "this" {
     max_size     = 3
     min_size     = 1
   }
-}
-
-// outputs.tf
-output "cluster_endpoint" {
-  value = aws_eks_cluster.this.endpoint
-}
-
-output "cluster_certificate_authority_data" {
-  value = aws_eks_cluster.this.certificate_authority[0].data
-}
-
-output "cluster_name" {
-  value = aws_eks_cluster.this.name
-}
-
-output "node_group_name" {
-  value = aws_eks_node_group.this.node_group_name
 }

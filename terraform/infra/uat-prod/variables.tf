@@ -1,4 +1,3 @@
-// variables.tf
 variable "aws_region" {
   description = "AWS region"
   type        = string
@@ -8,7 +7,7 @@ variable "aws_region" {
 variable "cluster_name" {
   description = "EKS cluster name"
   type        = string
-  default     = "microservices-cluster"
+  default     = "uat-prod-cluster"
 }
 
 variable "vpc_cidr" {
@@ -31,15 +30,12 @@ variable "private_subnet_cidrs" {
 
 variable "eks_cluster_role_arn" {
   description = "ARN of existing IAM role for EKS cluster"
-  default     = "arn:aws:iam::035863456454:role/LabRole"
   type        = string
+  default     = "arn:aws:iam::035863456454:role/LabRole"
 }
 
 variable "eks_node_group_role_arn" {
   description = "ARN of existing IAM role for EKS node group"
-  default     = "arn:aws:iam::035863456454:role/LabRole"
   type        = string
+  default     = "arn:aws:iam::035863456454:role/LabRole"
 }
-
-// data sources
-data "aws_availability_zones" "available" {}
