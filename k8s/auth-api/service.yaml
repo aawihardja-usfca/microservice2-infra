@@ -1,0 +1,14 @@
+# auth-api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-api
+  labels:
+    app: microservice-app-example
+    service: auth-api
+spec:
+  selector:
+    service: auth-api
+  ports:
+  - port: 8081
+    targetPort: 8081

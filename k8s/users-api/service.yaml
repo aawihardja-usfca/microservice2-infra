@@ -1,0 +1,14 @@
+# users-api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: users-api
+  labels:
+    app: microservice-app-example
+    service: users-api
+spec:
+  selector:
+    service: users-api
+  ports:
+  - port: 8083
+    targetPort: 8083

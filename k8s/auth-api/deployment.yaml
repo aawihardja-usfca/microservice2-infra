@@ -1,0 +1,35 @@
+# auth-api deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-api
+  labels:
+    app: microservice-app-example
+    service: auth-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: auth-api
+  template:
+    metadata:
+      labels:
+        app: microservice-app-example
+        service: auth-api
+    spec:
+      containers:
+      - name: auth-api
+        # image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/auth-api:QA-2025-04-28
+        image: __IMAGE__
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+        env:
+        - name: AUTH_API_PORT
+          value: "8081"
+        - name: JWT_SECRET
+          value: myfancysecret
+        - name: USERS_API_ADDRESS
+          value: http://users-api:8083
+        - name: ZIPKIN_URL
+          value: http://zipkin:9411/api/v2/spans
