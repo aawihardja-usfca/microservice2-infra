@@ -33,11 +33,11 @@ jobs:
         with:
           version: 'latest'
       
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-            --region ${{ env.AWS_REGION }} \
-            --name   ${{ env.EKS_CLUSTER_NAME }}
+      # - name: Update kubeconfig
+      #   run: |
+      #     aws eks update-kubeconfig \
+      #       --region ${{ env.AWS_REGION }} \
+      #       --name   ${{ env.EKS_CLUSTER_NAME }}
 
       - name: Deploy to Kubernetes
         env:
