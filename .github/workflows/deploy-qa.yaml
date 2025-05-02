@@ -2,7 +2,7 @@ name: CD → Deploy via Dispatch
 
 on:
   repository_dispatch:
-    types: [ deploy ]
+    types: [ deploy-qa ]
 
 env:
   AWS_REGION: us-east-1
