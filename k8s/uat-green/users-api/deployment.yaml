@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: users-api-blue
+  name: users-api-green
   labels:
     service: users-api
-    version: blue
+    version: green
 spec:
   replicas: 1
   selector:
     matchLabels:
       service: users-api
-      version: blue
+      version: green
   template:
     metadata:
       labels:
         app: microservice-app-example
         service: users-api
-        version: blue
+        version: green
     spec:
       containers:
       - name: users-api
-        image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/users-api:rc-users-api-1.0
+        image: __IMAGE__
         imagePullPolicy: Always
         ports:
         - containerPort: 8083

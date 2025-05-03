@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: log-message-processor-blue
+  name: log-message-processor-green
   labels:
     service: log-message-processor
-    version: blue
+    version: green
 spec:
   replicas: 1
   selector:
     matchLabels:
       service: log-message-processor
-      version: blue
+      version: green
   template:
     metadata:
       labels:
         app: microservice-app-example
         service: log-message-processor
-        version: blue
+        version: green
     spec:
       containers:
       - name: log-message-processor
-        image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/log-message-processor:rc-log-message-processor-1.0
+        image: __IMAGE__
         imagePullPolicy: Always
         env:
         - name: REDIS_HOST

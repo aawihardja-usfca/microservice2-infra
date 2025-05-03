@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: todos-api-blue
+  name: todos-api-green
   labels:
     service: todos-api
-    version: blue
+    version: green
 spec:
   replicas: 1
   selector:
     matchLabels:
       service: todos-api
-      version: blue
+      version: green
   template:
     metadata:
       labels:
         app: microservice-app-example
         service: todos-api
-        version: blue
+        version: green
     spec:
       containers:
       - name: todos-api
-        image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/todos-api:rc-todos-api-1.0
+        image: __IMAGE__
         imagePullPolicy: Always
         ports:
         - containerPort: 8082

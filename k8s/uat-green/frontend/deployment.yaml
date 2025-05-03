@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-blue
+  name: frontend-green
   labels:
     service: frontend
-    version: blue
+    version: green
 spec:
   replicas: 1
   selector:
     matchLabels:
       service: frontend
-      version: blue
+      version: green
   template:
     metadata:
       labels:
         app: microservice-app-example
         service: frontend
-        version: blue
+        version: green
     spec:
       containers:
       - name: frontend
-        image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/frontend:rc-frontend-1.0
+        image: __IMAGE__
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
