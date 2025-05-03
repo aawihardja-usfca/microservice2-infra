@@ -1,0 +1,61 @@
+name: Deploy to UAT → via Dispatch
+
+on:
+  repository_dispatch:
+    types: [ deploy-uat ]
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: '035863456454'
+  EKS_CLUSTER_NAME: uat-prod-cluster # Only for uat, not using namespace for now
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+      
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name   ${{ env.EKS_CLUSTER_NAME }}
+
+      # Need to change this step
+      # Maybe in this repo, I can create a green deployment for each services
+      # and then create an internal service to test the new green.
+      # If everything is ok, I can switch the service to point to the green,
+      # then remove the blue deployment.
+      # If not, I can just delete the green deployment.
+
+      # - name: Deploy to Kubernetes
+      #   env:
+      #     SERVICE: ${{ github.event.client_payload.service }}
+      #     IMAGE:   ${{ github.event.client_payload.image_uri }}
+      #   run: |
+      #     echo "Updating $SERVICE → $IMAGE"
+      #     # echo "Updating $SERVICE → $IMAGE"
+
+      #     # kubectl set image deployment/$SERVICE \
+      #     #   $SERVICE=$IMAGE \
+      #     #   --record
+
+      #     # kubectl rollout status deployment/$SERVICE

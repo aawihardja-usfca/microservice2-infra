@@ -1,0 +1,14 @@
+# redis-queue service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-queue
+  labels:
+    app: microservice-app-example
+    service: redis-queue
+spec:
+  selector:
+    service: redis-queue
+  ports:
+  - port: 6379
+    targetPort: 6379
