@@ -42,7 +42,7 @@ jobs:
       # 1) Render & apply the green Deployment
       # 2) Flip the main Service selector to green
       # 3) Delete the blue Deployment
-      - name: Deploy GREEN for ${{ payload.service }}
+      - name: Deploy GREEN for ${{ github.event.client_payload.service }}
         env:
           SERVICE: ${{ github.event.client_payload.service }}
           IMAGE:   ${{ github.event.client_payload.image_uri }}
