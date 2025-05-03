@@ -39,23 +39,22 @@ jobs:
             --region ${{ env.AWS_REGION }} \
             --name   ${{ env.EKS_CLUSTER_NAME }}
 
-      # Need to change this step
-      # Maybe in this repo, I can create a green deployment for each services
-      # and then create an internal service to test the new green.
-      # If everything is ok, I can switch the service to point to the green,
-      # then remove the blue deployment.
-      # If not, I can just delete the green deployment.
+      # 1) Render & apply the green Deployment
+      # 2) Flip the main Service selector to green
+      # 3) Delete the blue Deployment
+      - name: Deploy GREEN for ${{ payload.service }}
+        env:
+          SERVICE: ${{ github.event.client_payload.service }}
+          IMAGE:   ${{ github.event.client_payload.image_uri }}
+        run: |
+          set -e
 
-      # - name: Deploy to Kubernetes
-      #   env:
-      #     SERVICE: ${{ github.event.client_payload.service }}
-      #     IMAGE:   ${{ github.event.client_payload.image_uri }}
-      #   run: |
-      #     echo "Updating $SERVICE → $IMAGE"
-      #     # echo "Updating $SERVICE → $IMAGE"
+          sed "s|__IMAGE__|$IMAGE|g" \
+            k8s/uat-green/${SERVICE}/deployment.yaml \
+            | kubectl apply -f -
+          kubectl rollout status deployment/${SERVICE}-green --timeout=120s
 
-      #     # kubectl set image deployment/$SERVICE \
-      #     #   $SERVICE=$IMAGE \
-      #     #   --record
+          kubectl patch svc/${SERVICE} \
+            -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}'
 
-      #     # kubectl rollout status deployment/$SERVICE
+          kubectl delete deployment/${SERVICE}-blue || true
