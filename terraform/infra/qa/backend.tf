@@ -9,8 +9,8 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "035863456454-terraform-state-backend"
-    key            = "terraform/uat-prod/terraform.tfstate"
+    bucket         = "905418330989-terraform-state-backend"
+    key            = "terraform/qa/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
     dynamodb_table = "terraform_state_lock"

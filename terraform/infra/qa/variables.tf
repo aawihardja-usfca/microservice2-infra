@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "cluster_name" {
   description = "EKS cluster name"
   type        = string
-  default     = "uat-prod-cluster"
+  default     = "QA-cluster"
 }
 
 variable "vpc_cidr" {
@@ -31,11 +31,11 @@ variable "private_subnet_cidrs" {
 variable "eks_cluster_role_arn" {
   description = "ARN of existing IAM role for EKS cluster"
   type        = string
-  default     = "arn:aws:iam::035863456454:role/LabRole"
+  default     = "arn:aws:iam::905418330989:role/LabRole"
 }
 
 variable "eks_node_group_role_arn" {
   description = "ARN of existing IAM role for EKS node group"
   type        = string
-  default     = "arn:aws:iam::035863456454:role/LabRole"
+  default     = "arn:aws:iam::905418330989:role/LabRole"
 }
