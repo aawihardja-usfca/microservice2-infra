@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-api-blue
+  labels:
+    service: users-api
+    version: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: users-api
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: microservice-app-example
+        service: users-api
+        version: blue
+    spec:
+      containers:
+      - name: users-api
+        image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/users-api:ga-users-api-1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8083
+        env:
+        - name: JWT_SECRET
+          value: myfancysecret
+        - name: SERVER_PORT
+          value: "8083"
+        - name: SPRING_ZIPKIN_BASE_URL
+          value: http://zipkin:9411

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:us-east-1:035863456454:certificate/8b8d2660-c127-4fcf-8542-ab18665fb924"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+spec:
+  type: LoadBalancer
+  selector:
+    service: frontend
+    version: blue
+  ports:
+  - name: https
+    port: 443
+    targetPort: 8080
+  - name: http
+    port: 80
+    targetPort: 8080

@@ -1,0 +1,15 @@
+# zipkin service
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+  labels:
+    app: microservice-app-example
+    service: zipkin
+spec:
+  type: LoadBalancer
+  selector:
+    service: zipkin
+  ports:
+  - port: 9411
+    targetPort: 9411
