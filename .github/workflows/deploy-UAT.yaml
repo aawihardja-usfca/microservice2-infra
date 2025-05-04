@@ -1,0 +1,68 @@
+name: Deploy to UAT → via Dispatch
+
+on:
+  repository_dispatch:
+    types: [ deploy-UAT ]
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: '035863456454'
+  EKS_CLUSTER_NAME: uat-prod-cluster # Only for uat, not using namespace for now
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+      
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name   ${{ env.EKS_CLUSTER_NAME }}
+
+      # 1) Render & apply the green Deployment
+      # 2) Flip the main Service selector to green
+      # 3) Delete the blue Deployment
+      - name: Deploy GREEN for ${{ github.event.client_payload.service }}
+        env:
+          AUTH_API_IMAGE: ${{ github.event.client_payload.auth-api }}
+          FRONTEND_IMAGE: ${{ github.event.client_payload.frontend }}
+          LOG_MESSAGE_PROCESSOR_IMAGE: ${{ github.event.client_payload.log-message-processor }}
+          USERS_API_IMAGE: ${{ github.event.client_payload.users-api }}
+          TODOS_API_IMAGE: ${{ github.event.client_payload.todos-api }}
+        run: |
+          echo auth-api: ${AUTH_API_IMAGE}
+          echo frontend: ${FRONTEND_IMAGE}
+          echo log-message-processor: ${LOG_MESSAGE_PROCESSOR_IMAGE}
+          echo users-api: ${USERS_API_IMAGE}
+          echo todos-api: ${TODOS_API_IMAGE}
+          # set -e
+
+          # sed "s|__IMAGE__|$IMAGE|g" \
+          #   k8s/uat-green/${SERVICE}/deployment.yaml \
+          #   | kubectl apply -f -
+          # kubectl rollout status deployment/${SERVICE}-green --timeout=120s
+
+          # kubectl patch svc/${SERVICE} \
+          #   -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}'
+
+          # kubectl delete deployment/${SERVICE}-blue || true
