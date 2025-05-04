@@ -6,8 +6,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: '035863456454'
-  EKS_CLUSTER_NAME: microservices-cluster
+  AWS_ACCOUNT_ID: '905418330989'
+  EKS_CLUSTER_NAME: QA-cluster
 
 jobs:
   deploy:
