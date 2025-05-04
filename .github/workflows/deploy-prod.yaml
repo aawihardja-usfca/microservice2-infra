@@ -2,7 +2,7 @@ name: Deploy to UAT → via Dispatch
 
 on:
   repository_dispatch:
-    types: [ deploy-nothing ]
+    types: [ deploy-prod ]
 
 env:
   AWS_REGION: us-east-1
