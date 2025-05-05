@@ -33,36 +33,44 @@ jobs:
         with:
           version: 'latest'
       
-      # - name: Update kubeconfig
-      #   run: |
-      #     aws eks update-kubeconfig \
-      #       --region ${{ env.AWS_REGION }} \
-      #       --name   ${{ env.EKS_CLUSTER_NAME }}
-
-      # 1) Render & apply the green Deployment
-      # 2) Flip the main Service selector to green
-      # 3) Delete the blue Deployment
-      - name: Deploy GREEN for ${{ github.event.client_payload.service }}
-        env:
-          AUTH_API_IMAGE: ${{ github.event.client_payload.auth-api }}
-          FRONTEND_IMAGE: ${{ github.event.client_payload.frontend }}
-          LOG_MESSAGE_PROCESSOR_IMAGE: ${{ github.event.client_payload.log-message-processor }}
-          USERS_API_IMAGE: ${{ github.event.client_payload.users-api }}
-          TODOS_API_IMAGE: ${{ github.event.client_payload.todos-api }}
+      - name: Update kubeconfig
         run: |
-          echo auth-api: ${AUTH_API_IMAGE}
-          echo frontend: ${FRONTEND_IMAGE}
-          echo log-message-processor: ${LOG_MESSAGE_PROCESSOR_IMAGE}
-          echo users-api: ${USERS_API_IMAGE}
-          echo todos-api: ${TODOS_API_IMAGE}
-          # set -e
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name   ${{ env.EKS_CLUSTER_NAME }}
 
-          # sed "s|__IMAGE__|$IMAGE|g" \
-          #   k8s/uat-green/${SERVICE}/deployment.yaml \
-          #   | kubectl apply -f -
-          # kubectl rollout status deployment/${SERVICE}-green --timeout=120s
+      # TASK: 
+      # 1) Need to compare the current deployment with the new one
+      # 2) If the new one is different, then we need to update the deployment
+      # 3) Render & apply the green Deployment
+      # 4) Flip the main Service selector to green
+      # 5) Delete the blue Deployment
+      # - name: Deploy GREEN for ${{ github.event.client_payload.service }}
+      #   run: |
+      #     set -e
 
-          # kubectl patch svc/${SERVICE} \
-          #   -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}'
+      #     ### Perform GREEN deployment for each service that was changed ###
 
-          # kubectl delete deployment/${SERVICE}-blue || true
+      #     for SERVICE in auth-api frontend users-api todos-api log-message-processor; do
+      #       IMAGE=$(echo '${{ toJson(github.event.client_payload) }}' | jq -r --arg s "$SERVICE" '.[$s]')
+      #       CURRENT=$(kubectl get deployment $SERVICE -o=jsonpath='{.spec.template.spec.containers[0].image}')
+            
+      #       echo "→ $SERVICE current: $CURRENT"
+      #       echo "→ $SERVICE target : $IMAGE"
+
+      #       if [ "$CURRENT" != "$IMAGE" ]; then
+      #         echo "Updating $SERVICE to $IMAGE"
+      #         # perform green deployment steps
+      #         sed "s|__IMAGE__|$IMAGE|g" \
+      #           k8s/uat-green/${SERVICE}/deployment.yaml \
+      #           | kubectl apply -f -
+      #         kubectl rollout status deployment/${SERVICE}-green --timeout=120s
+
+      #         kubectl patch svc/${SERVICE} \
+      #           -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}'
+
+      #         kubectl delete deployment/${SERVICE}-blue || true
+      #       else
+      #         echo "Skipping $SERVICE (already running desired version)"
+      #       fi
+      #     done
