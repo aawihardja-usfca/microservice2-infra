@@ -21,7 +21,6 @@ spec:
       containers:
       - name: auth-api
         image: __IMAGE__
-        # image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/auth-api:rc-auth-api-1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
