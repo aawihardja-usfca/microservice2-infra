@@ -1,60 +1,60 @@
-name: Deploy to UAT → via Dispatch
+# name: Deploy to Production
 
-on:
-  repository_dispatch:
-    types: [ deploy-prod ]
+# on:
+#   repository_dispatch:
+#     types: [ deploy-prod ]
 
-env:
-  AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: '035863456454'
-  EKS_CLUSTER_NAME: prod-cluster
+# env:
+#   AWS_REGION: us-east-1
+#   AWS_ACCOUNT_ID: '035863456454'
+#   EKS_CLUSTER_NAME: prod-cluster
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout infra repo
-        uses: actions/checkout@v4
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout infra repo
+#         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-region: ${{ env.AWS_REGION }}
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Login to AWS ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+#       - name: Login to AWS ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: 'latest'
+#       - name: Set up kubectl
+#         uses: azure/setup-kubectl@v4
+#         with:
+#           version: 'latest'
       
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig \
-            --region ${{ env.AWS_REGION }} \
-            --name   ${{ env.EKS_CLUSTER_NAME }}
+#       - name: Update kubeconfig
+#         run: |
+#           aws eks update-kubeconfig \
+#             --region ${{ env.AWS_REGION }} \
+#             --name   ${{ env.EKS_CLUSTER_NAME }}
 
-      # 1) Render & apply the green Deployment
-      # 2) Flip the main Service selector to green
-      # 3) Delete the blue Deployment
-      - name: Deploy GREEN for ${{ github.event.client_payload.service }}
-        env:
-          SERVICE: ${{ github.event.client_payload.service }}
-          IMAGE:   ${{ github.event.client_payload.image_uri }}
-        run: |
-          set -e
+#       # 1) Render & apply the green Deployment
+#       # 2) Flip the main Service selector to green
+#       # 3) Delete the blue Deployment
+#       - name: Deploy GREEN for ${{ github.event.client_payload.service }}
+#         env:
+#           SERVICE: ${{ github.event.client_payload.service }}
+#           IMAGE:   ${{ github.event.client_payload.image_uri }}
+#         run: |
+#           set -e
 
-          sed "s|__IMAGE__|$IMAGE|g" \
-            k8s/prod-green/${SERVICE}/deployment.yaml \
-            | kubectl apply -f -
-          kubectl rollout status deployment/${SERVICE}-green --timeout=120s
+#           sed "s|__IMAGE__|$IMAGE|g" \
+#             k8s/prod-green/${SERVICE}/deployment.yaml \
+#             | kubectl apply -f -
+#           kubectl rollout status deployment/${SERVICE}-green --timeout=120s
 
-          kubectl patch svc/${SERVICE} \
-            -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}'
+#           kubectl patch svc/${SERVICE} \
+#             -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}'
 
-          kubectl delete deployment/${SERVICE}-blue || true
+#           kubectl delete deployment/${SERVICE}-blue || true
