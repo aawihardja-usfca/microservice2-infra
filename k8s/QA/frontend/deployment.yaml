@@ -1,4 +1,3 @@
-# frontend deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,8 +18,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        # image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/frontend:QA-2025-04-28
-        image: __IMAGE__
+        image: 905418330989.dkr.ecr.us-east-1.amazonaws.com/frontend:QA-frontend-1.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

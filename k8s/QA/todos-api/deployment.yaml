@@ -1,4 +1,3 @@
-# todos-api deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,8 +18,7 @@ spec:
     spec:
       containers:
       - name: todos-api
-        # image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/todos-api:QA-2025-04-28
-        image: __IMAGE__
+        image: 905418330989.dkr.ecr.us-east-1.amazonaws.com/todos-api:QA-todos-api-1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8082

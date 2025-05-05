@@ -1,15 +1,14 @@
-# frontend service
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend
+  name: zipkin
   labels:
     app: microservice-app-example
-    service: frontend
+    service: zipkin
 spec:
   type: LoadBalancer
   selector:
-    service: frontend
+    service: zipkin
   ports:
-  - port: 8080
-    targetPort: 8080
+  - port: 9411
+    targetPort: 9411
