@@ -1,4 +1,4 @@
-name: Deploy to UAT → via Dispatch
+name: Deploy to UAT
 
 on:
   repository_dispatch:
