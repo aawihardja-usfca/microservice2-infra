@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: users-api
-        image: 035863456454.dkr.ecr.us-east-1.amazonaws.com/users-api:rc-users-api-1.0
+        image: 905418330989.dkr.ecr.us-east-1.amazonaws.com/users-api:QA-users-api-1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8083
