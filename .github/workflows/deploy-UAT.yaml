@@ -47,30 +47,38 @@ jobs:
       # 5) Delete the blue Deployment
       - name: Deploy GREEN for ${{ github.event.client_payload.service }}
         run: |
-          set -e
-
-          ### Perform GREEN deployment for each service that was changed ###
-
           for SERVICE in auth-api frontend users-api todos-api log-message-processor; do
             IMAGE=$(echo '${{ toJson(github.event.client_payload) }}' | jq -r --arg s "$SERVICE" '.[$s]')
-            CURRENT=$(kubectl get deployment $SERVICE -o=jsonpath='{.spec.template.spec.containers[0].image}')
+            
+            if [ -z "$IMAGE" ] || [ "$IMAGE" = "null" ]; then
+              echo "⚠️ Skipping $SERVICE — no image URI provided in payload."
+              continue
+            fi
+
+            CURRENT=$(kubectl get deployment ${SERVICE}-blue -o=jsonpath='{.spec.template.spec.containers[0].image}')
             
             echo "→ $SERVICE current: $CURRENT"
             echo "→ $SERVICE target : $IMAGE"
 
             if [ "$CURRENT" != "$IMAGE" ]; then
-              echo "Updating $SERVICE to $IMAGE"
-              # perform green deployment steps
+              echo "🔄 Updating $SERVICE to $IMAGE"
+
+              # Deploy GREEN version
               sed "s|__IMAGE__|$IMAGE|g" \
                 k8s/uat-green/${SERVICE}/deployment.yaml \
                 | kubectl apply -f -
+
+              # Wait for rollout
               kubectl rollout status deployment/${SERVICE}-green --timeout=120s
 
+              # Update service selector to point to green
               kubectl patch svc/${SERVICE} \
-                -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}'
+                -p '{"spec":{"selector":{"service":"'"${SERVICE}"'","version":"green"}}}' \
+                || { echo "❌ Failed to patch service $SERVICE"; exit 1; }
 
+              # Remove the previous BLUE deployment
               kubectl delete deployment/${SERVICE}-blue || true
             else
-              echo "Skipping $SERVICE (already running desired version)"
+              echo "✅ Skipping $SERVICE (already up-to-date)"
             fi
           done
